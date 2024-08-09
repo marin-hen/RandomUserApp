@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">TestApp</string>
+    <string name="screen_user_list_title">Users</string>
+    <string name="screen_user_detail_title">User Details</string>
+
+    <string name="error_general">"Something went terribly wrong!"</string>
+    <string name="error_no_internet_connection">"No internet connection"</string>
+
+    <string name="gender">Gender</string>
+    <string name="timezone">Timezone</string>
+    <string name="email">Email</string>
+    <string name="phone">Phone</string>
+    <string name="cell">Cell</string>
+
+    <string name="test_tag_loading">loading</string>
+    <string name="test_tag_user_list">user_list</string>
+    <string name="test_tag_user_item">user_item</string>
+    <string name="test_tag_user_item_with_text">user_item_with_text</string>
+    <string name="test_tag_favorite_toggle">test_tag_favorite_toggle</string>
+</resources>
