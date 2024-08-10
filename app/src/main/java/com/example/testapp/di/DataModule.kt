@@ -21,7 +21,6 @@ object DataModule {
         return retrofit.create(UsersApi::class.java)
     }
 
-    @Singleton
     @Provides
     fun provideUsersRepository(api: UsersApi, usersDao: UsersDao) : UsersRepository {
         return UsersRepositoryImpl(api, usersDao)

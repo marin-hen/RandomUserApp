@@ -1,10 +1,12 @@
 package com.example.testapp.user.presentation.model
 
-sealed interface UserListUiState {
-    data object LoadingUiState : UserListUiState
-    data class ErrorUiState(val errorMessage: String?) : UserListUiState
-    data class UsersUiState(
-        val users: List<UserUiModel> = emptyList(),
-        val isRefreshing: Boolean = false
-    ) : UserListUiState
-}
+import androidx.annotation.StringRes
+
+data class UserListUiState(
+    val users: List<UserUiModel> = emptyList(),
+    val isRefreshing: Boolean = false,
+    val isFavoriteUsersEnabled: Boolean = false,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    @StringRes val remoteErrorMessage: Int? = null
+)

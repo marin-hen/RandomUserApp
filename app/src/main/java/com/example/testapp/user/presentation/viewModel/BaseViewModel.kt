@@ -8,15 +8,12 @@ import com.example.testapp.user.presentation.model.ErrorUiMessage
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
 
-    private val _errorStateMessage: MutableStateFlow<ErrorUiMessage> =
+    protected val _errorStateMessage: MutableStateFlow<ErrorUiMessage> =
         MutableStateFlow(ErrorUiMessage(null))
-    val errorStateMessage: StateFlow<ErrorUiMessage> = _errorStateMessage.asStateFlow()
 
     private fun errorHandler(caughtError: (err: Throwable) -> Unit) =
         CoroutineExceptionHandler { _, throwable ->
