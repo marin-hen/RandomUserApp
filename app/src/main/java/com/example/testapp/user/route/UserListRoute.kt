@@ -28,13 +28,9 @@ fun NavGraphBuilder.userListScreen(
     composable(UserListRoute.route) {
         val viewModel = hiltViewModel<UsersListViewModel>()
         val state by viewModel.state.collectAsState()
-        val errorStateMessage by viewModel.errorStateMessage.collectAsState()
-        val isFavoriteUsersEnabled by viewModel.isFavoriteUsersEnabled.collectAsState()
 
         UserListScreen(
             state = state,
-            error = errorStateMessage,
-            isFavoriteUsersEnabled = isFavoriteUsersEnabled,
             onItemDetailsClick = onItemDetailsClick,
             onFavoriteUserClick = viewModel::onFavoriteClick,
             onFavoriteFilterClick = viewModel::switchUserFilter,

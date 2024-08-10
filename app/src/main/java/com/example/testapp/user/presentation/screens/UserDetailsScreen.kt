@@ -76,7 +76,7 @@ internal fun UserDetailsScreen(
             )
 
             is UserDetailsUiState.LoadingUiState -> {
-                CenteredCircleLoader()
+                CenteredCircleLoader(uiState.isLoading)
             }
 
             is UserDetailsUiState.ErrorUiState -> {

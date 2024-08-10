@@ -31,7 +31,7 @@ internal class UserDetailsViewModel @Inject constructor(
             }.asResult()
             .map { result ->
                 when (result) {
-                    is Result.Loading -> UserDetailsUiState.LoadingUiState
+                    is Result.Loading -> UserDetailsUiState.LoadingUiState(true)
                     is Result.Success -> result.data
                     is Result.Error -> UserDetailsUiState.ErrorUiState(result.exception?.message)
                 }
@@ -41,6 +41,6 @@ internal class UserDetailsViewModel @Inject constructor(
     val state = _state.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = UserDetailsUiState.LoadingUiState
+        initialValue = UserDetailsUiState.LoadingUiState(true)
     )
 }

@@ -1,24 +1,22 @@
 package com.example.testapp.user.presentation.viewModel
 
 import androidx.lifecycle.viewModelScope
+import com.example.testapp.common.Result
 import com.example.testapp.common.asResult
 import com.example.testapp.user.domain.usecase.UsersUseCase
 import com.example.testapp.user.presentation.model.UserListUiState
 import com.example.testapp.user.presentation.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import com.example.testapp.common.Result
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,32 +25,51 @@ internal class UsersListViewModel @Inject constructor(
 ) : BaseViewModel() {
 
     private val _isFavoriteUsersEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isFavoriteUsersEnabled: StateFlow<Boolean> = _isFavoriteUsersEnabled.asStateFlow()
-
     private val _isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _state: Flow<UserListUiState> = _isFavoriteUsersEnabled
-        .flatMapLatest { isEnabled ->
-           getUsersUseCase.getUsersAsFlow(isEnabled)
+    private val _state: Flow<UserListUiState> = combine(
+        _errorStateMessage,
+        _isFavoriteUsersEnabled,
+        _isRefreshing,
+        _isFavoriteUsersEnabled.flatMapLatest { isEnabled ->
+            getUsersUseCase.getUsersAsFlow(isEnabled)
                 .map { users -> users.map { it.toUiModel() } }
                 .asResult()
         }
-        .combine(_isRefreshing) { result, isRefreshing ->
-            when (result) {
-                is Result.Loading -> UserListUiState.LoadingUiState
-                is Result.Success -> UserListUiState.UsersUiState(
-                    users = result.data,
-                    isRefreshing = isRefreshing
+    ) { errorStateMessage, isFavoriteUsersEnabled, isRefreshing, result ->
+        when (result) {
+            is Result.Loading -> {
+                UserListUiState(
+                    isLoading = true,
+                    isRefreshing = isRefreshing,
+                    isFavoriteUsersEnabled = isFavoriteUsersEnabled
                 )
-                is Result.Error -> UserListUiState.ErrorUiState(errorMessage = result.exception?.message)
+            }
+
+            is Result.Success -> {
+                UserListUiState(
+                    users = result.data,
+                    isRefreshing = isRefreshing,
+                    isFavoriteUsersEnabled = isFavoriteUsersEnabled,
+                    remoteErrorMessage = errorStateMessage.errorMessage
+                )
+            }
+
+            is Result.Error -> {
+                UserListUiState(
+                    isRefreshing = isRefreshing,
+                    isFavoriteUsersEnabled = isFavoriteUsersEnabled,
+                    errorMessage = result.exception?.message
+                )
             }
         }
+    }
 
     val state = _state.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = UserListUiState.LoadingUiState
+        initialValue = UserListUiState()
     )
 
     init {
@@ -71,13 +88,13 @@ internal class UsersListViewModel @Inject constructor(
     }
 
     fun onFavoriteClick(id: Long, isFavorite: Boolean) {
-        viewModelScope.launch {
+        executeCoroutine {
             getUsersUseCase.updateIsFavoriteById(id, isFavorite)
         }
     }
 
     fun switchUserFilter(isFavoriteUsersEnabled: Boolean) {
-        _isFavoriteUsersEnabled.value = isFavoriteUsersEnabled
+        _isFavoriteUsersEnabled.update { isFavoriteUsersEnabled }
     }
 
     companion object {

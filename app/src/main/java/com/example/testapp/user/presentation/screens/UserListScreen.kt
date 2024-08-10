@@ -1,6 +1,11 @@
 package com.example.testapp.user.presentation.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,8 +75,6 @@ val unfilledHeartIcon: ImageVector = Icons.Outlined.FavoriteBorder
 @Composable
 internal fun UserListScreen(
     state: UserListUiState,
-    error: ErrorUiMessage,
-    isFavoriteUsersEnabled: Boolean,
     onItemDetailsClick: (Long) -> Unit,
     onFavoriteUserClick: (Long, Boolean) -> Unit,
     onFavoriteFilterClick: (Boolean) -> Unit,
@@ -80,7 +83,7 @@ internal fun UserListScreen(
 ) {
     val filterFilledHeartIcon = ImageVector.vectorResource(id = R.drawable.ic_favorite_filled)
     val filterUnfilledHeartIcon = ImageVector.vectorResource(id = R.drawable.ic_favorite)
-    var isHeartFilledState by remember { mutableStateOf(isFavoriteUsersEnabled) }
+    var isHeartFilledState by remember { mutableStateOf(state.isFavoriteUsersEnabled) }
     val snackBarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -132,7 +135,7 @@ internal fun UserListScreen(
             modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
         )
 
-        error.errorMessage?.let {
+        state.remoteErrorMessage?.let {
             val errorMsg = stringResource(id = it)
             LaunchedEffect(it) {
                 snackBarHostState.showSnackbar(
@@ -153,36 +156,38 @@ private fun ScreenContent(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    when (uiState) {
-        is UserListUiState.LoadingUiState -> CenteredCircleLoader()
-        is UserListUiState.ErrorUiState -> ErrorContent(
-            errorText = uiState.errorMessage,
-            modifier = modifier
-        )
-
-        is UserListUiState.UsersUiState -> UserList(
-            uiState,
-            onItemDetailsClick,
-            onFavoriteClick,
-            onRefresh,
-            modifier
-        )
-    }
+    CenteredCircleLoader(visible = uiState.isLoading)
+    UserList(
+        uiState,
+        onItemDetailsClick,
+        onFavoriteClick,
+        onRefresh,
+        modifier
+    )
+    ErrorContent(
+        errorText = uiState.errorMessage,
+        modifier = modifier
+    )
 }
 
 @Composable
-fun CenteredCircleLoader() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun CenteredCircleLoader(visible: Boolean) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut()
     ) {
-        CircleLoader(
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .size(100.dp)
-                .testTag(stringResource(id = R.string.test_tag_loading)),
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircleLoader(
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .size(100.dp)
+                    .testTag(stringResource(id = R.string.test_tag_loading)),
+            )
+        }
     }
 }
 
@@ -214,7 +219,7 @@ fun SnackBarWithIcon(data: SnackbarData) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UserList(
-    state: UserListUiState.UsersUiState,
+    state: UserListUiState,
     onItemDetailsClick: (Long) -> Unit,
     onFavoriteClick: (Long, Boolean) -> Unit,
     onRefresh: () -> Unit,
@@ -346,7 +351,7 @@ private val mockUser = UserUiModel(
     isFavorite = false
 )
 
-val mockUserListState = UserListUiState.UsersUiState(
+val mockUserListState = UserListUiState(
     users = listOf(mockUser, mockUser.copy(name = "Gina Doe"))
 )
 
@@ -355,8 +360,6 @@ val mockUserListState = UserListUiState.UsersUiState(
 fun PreviewUserListScreen() {
     UserListScreen(
         state = mockUserListState,
-        error = ErrorUiMessage(null),
-        isFavoriteUsersEnabled = false,
         onItemDetailsClick = {},
         onFavoriteUserClick = { _, _ -> },
         onFavoriteFilterClick = {},
