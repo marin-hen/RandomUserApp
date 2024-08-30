@@ -1,8 +1,9 @@
 package com.example.testapp.di
 
 import com.example.testapp.BuildConfig
-import com.example.testapp.di.intercepter.CurlLoggingInterceptor
-import com.example.testapp.di.intercepter.ErrorInterceptor
+import com.example.testapp.common.network.interceptor.CurlLoggingInterceptor
+import com.example.testapp.common.network.interceptor.ErrorInterceptor
+import com.example.testapp.user.data.remote.UsersApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -17,7 +18,6 @@ import okhttp3.logging.HttpLoggingInterceptor.Level
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -30,6 +30,12 @@ object NetworkModule {
             addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             client(okHttp)
         }.build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideUserApi(retrofit: Retrofit): UsersApi {
+        return retrofit.create(UsersApi::class.java)
     }
 
     @Provides

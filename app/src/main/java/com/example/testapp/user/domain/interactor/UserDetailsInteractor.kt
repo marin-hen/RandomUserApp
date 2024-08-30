@@ -1,4 +1,4 @@
-package com.example.testapp.user.domain.usecase
+package com.example.testapp.user.domain.interactor
 
 import com.example.testapp.di.IoDispatcher
 import com.example.testapp.user.domain.UsersRepository
@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class UserDetailsUseCase @Inject constructor(
+class UserDetailsInteractor @Inject constructor(
     @IoDispatcher val dispatcher: CoroutineDispatcher,
     private val usersRepository: UsersRepository
 ) {

@@ -2,7 +2,7 @@ package com.example.testapp.domain.usecase
 
 import com.example.testapp.user.domain.UsersRepository
 import com.example.testapp.user.domain.model.UserDomainModel
-import com.example.testapp.user.domain.usecase.UsersUseCase
+import com.example.testapp.user.domain.interactor.UsersInteractor
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,19 +18,19 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-class UsersUseCaseTest {
+class UsersInteractorTest {
 
     @MockK
     private lateinit var usersRepository: UsersRepository
 
-    private lateinit var classUnderTest: UsersUseCase
+    private lateinit var classUnderTest: UsersInteractor
 
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        classUnderTest = UsersUseCase(testDispatcher, usersRepository)
+        classUnderTest = UsersInteractor(testDispatcher, usersRepository)
     }
 
     @Test

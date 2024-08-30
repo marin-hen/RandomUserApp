@@ -1,4 +1,4 @@
-package com.example.testapp.common.theme
+package com.example.testapp.common
 
 import androidx.compose.animation.core.Spring.DampingRatioLowBouncy
 import androidx.compose.animation.core.Spring.StiffnessMediumLow

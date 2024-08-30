@@ -1,6 +1,7 @@
 package com.example.testapp.user.presentation.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -15,13 +16,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -39,7 +40,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +54,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,6 +67,7 @@ import com.example.testapp.user.presentation.model.ErrorUiMessage
 import com.example.testapp.user.presentation.model.PictureUiModel
 import com.example.testapp.user.presentation.model.UserListUiState
 import com.example.testapp.user.presentation.model.UserUiModel
+import kotlinx.collections.immutable.persistentListOf
 
 val filledHeartIcon: ImageVector = Icons.Filled.Favorite
 val unfilledHeartIcon: ImageVector = Icons.Outlined.FavoriteBorder
@@ -75,6 +76,7 @@ val unfilledHeartIcon: ImageVector = Icons.Outlined.FavoriteBorder
 @Composable
 internal fun UserListScreen(
     state: UserListUiState,
+    error: ErrorUiMessage,
     onItemDetailsClick: (Long) -> Unit,
     onFavoriteUserClick: (Long, Boolean) -> Unit,
     onFavoriteFilterClick: (Boolean) -> Unit,
@@ -110,7 +112,7 @@ internal fun UserListScreen(
                 actions = {
                     IconButton(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
+                            .padding(horizontal = 16.dp)
                             .testTag(stringResource(id = R.string.test_tag_favorite_toggle)),
                         onClick = {
                             isHeartFilledState = !isHeartFilledState
@@ -132,10 +134,12 @@ internal fun UserListScreen(
             onItemDetailsClick = onItemDetailsClick,
             onFavoriteClick = onFavoriteUserClick,
             onRefresh = onRefresh,
-            modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier
+                .padding(top = paddingValues.calculateTopPadding())
+                .navigationBarsPadding()
         )
 
-        state.remoteErrorMessage?.let {
+        error.errorMessage?.let {
             val errorMsg = stringResource(id = it)
             LaunchedEffect(it) {
                 snackBarHostState.showSnackbar(
@@ -156,6 +160,7 @@ private fun ScreenContent(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Log.d("TAG", "ScreenContent:CenteredCircleLoader ${uiState.isLoading} ")
     CenteredCircleLoader(visible = uiState.isLoading)
     UserList(
         uiState,
@@ -196,12 +201,11 @@ fun SnackBarWithIcon(data: SnackbarData) {
     Snackbar(
         modifier = Modifier.padding(16.dp),
         content = {
-            Row(verticalAlignment = Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        data.dismiss()
-                    }
+                    .clickable(onClick = data::dismiss)
             ) {
                 Image(
                     modifier = Modifier.padding(end = 16.dp),
@@ -225,23 +229,23 @@ private fun UserList(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
 
-    Box(
+    PullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = { onRefresh() },
         modifier = modifier
             .fillMaxSize()
-            .nestedScroll(pullToRefreshState.nestedScrollConnection)
             .testTag(stringResource(id = R.string.test_tag_user_list))
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 16.dp),
-            contentPadding = PaddingValues(8.dp),
+                .fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp),
             state = rememberLazyListState()
         ) {
             itemsIndexed(
-                items = state.users
+                items = state.users,
+                // todo       key = { _, user -> user.id}
             ) { index, user ->
                 if (index > 0) {
                     HorizontalDivider(
@@ -257,26 +261,6 @@ private fun UserList(
                 )
             }
         }
-
-        if (pullToRefreshState.isRefreshing) {
-            LaunchedEffect(true) {
-                onRefresh()
-            }
-        }
-
-        LaunchedEffect(state.isRefreshing) {
-            if (state.isRefreshing) {
-                pullToRefreshState.startRefresh()
-            } else {
-                pullToRefreshState.endRefresh()
-            }
-        }
-
-        PullToRefreshContainer(
-            state = pullToRefreshState,
-            modifier = Modifier
-                .align(Alignment.TopCenter),
-        )
     }
 }
 
@@ -286,18 +270,27 @@ fun UserItem(
     onItemDetailsClick: (Long) -> Unit,
     onFavoriteClick: (Long, Boolean) -> Unit
 ) {
+    val onFavoriteClickProvider = remember(item.id) {
+        { isFavorite: Boolean ->
+            onFavoriteClick(item.id, isFavorite)
+        }
+    }
+
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onItemDetailsClick(item.id)
-            }
+            .fillMaxSize()
+            .clickable(onClick = { onItemDetailsClick(item.id) })
             .testTag(stringResource(id = R.string.test_tag_user_item_with_text)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AsyncImage(
             modifier = Modifier
-                .padding(all = 16.dp)
+                .padding(
+                    start = 24.dp,
+                    top = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp
+                )
                 .size(72.dp)
                 .clip(CircleShape),
             model = item.picture.thumbnail,
@@ -324,10 +317,9 @@ fun UserItem(
         }
 
         IconToggleButton(
+            modifier = Modifier.padding(end = 16.dp),
             checked = item.isFavorite,
-            onCheckedChange = { isFavorite ->
-                onFavoriteClick(item.id, isFavorite)
-            }
+            onCheckedChange = onFavoriteClickProvider
         ) {
             Icon(
                 imageVector = if (item.isFavorite) filledHeartIcon else unfilledHeartIcon,
@@ -352,7 +344,7 @@ private val mockUser = UserUiModel(
 )
 
 val mockUserListState = UserListUiState(
-    users = listOf(mockUser, mockUser.copy(name = "Gina Doe"))
+    users = persistentListOf(mockUser, mockUser.copy(name = "Gina Doe"))
 )
 
 @Preview(showBackground = true)
@@ -360,6 +352,7 @@ val mockUserListState = UserListUiState(
 fun PreviewUserListScreen() {
     UserListScreen(
         state = mockUserListState,
+        error = ErrorUiMessage(errorMessage = null),
         onItemDetailsClick = {},
         onFavoriteUserClick = { _, _ -> },
         onFavoriteFilterClick = {},

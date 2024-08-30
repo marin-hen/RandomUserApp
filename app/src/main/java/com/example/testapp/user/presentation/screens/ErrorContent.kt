@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.testapp.R
-import com.example.testapp.common.theme.enterSpring
+import com.example.testapp.common.enterSpring
 
 @Composable
 fun ErrorContent(errorText: String?, modifier: Modifier = Modifier) {

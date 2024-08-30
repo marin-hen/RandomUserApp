@@ -10,6 +10,7 @@ import com.example.testapp.user.data.remote.model.Picture
 import com.example.testapp.user.data.remote.model.Street
 import com.example.testapp.user.data.remote.model.Timezone
 import com.example.testapp.user.data.remote.model.UsersDto
+import com.example.testapp.user.domain.UsersRepository
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,7 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-class UsersRepositoryImplTest {
+class UsersRepositoryTest {
 
     @MockK
     private lateinit var usersApi: UsersApi
@@ -32,7 +33,7 @@ class UsersRepositoryImplTest {
     @MockK
     private lateinit var usersDao: UsersDao
 
-    private lateinit var usersRepository: UsersRepositoryImpl
+    private lateinit var usersRepository: UsersRepository
 
     private val userEntity = UserEntity(
         id = 1L,

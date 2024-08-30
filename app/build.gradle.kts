@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.testapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.testapp"
@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    // Hilt
+    implementation(libs.immutable.collections)
     implementation(libs.hilt.android)
     implementation(libs.hilt.compose)
     kapt(libs.hilt.compiler)
@@ -77,12 +77,10 @@ dependencies {
     implementation(libs.io.coil)
     implementation(libs.io.coil.compose)
 
-    // Retrofit
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.logger)
     implementation(libs.retrofit.convertor)
 
-    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
@@ -92,7 +90,9 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
-
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.inline)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -100,4 +100,5 @@ dependencies {
     androidTestImplementation(libs.room.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }

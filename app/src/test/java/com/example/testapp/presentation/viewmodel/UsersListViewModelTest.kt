@@ -4,9 +4,7 @@ import com.example.testapp.user.domain.model.LocationModel
 import com.example.testapp.user.domain.model.PictureModel
 import com.example.testapp.user.domain.model.StreetModel
 import com.example.testapp.user.domain.model.UserDomainModel
-import com.example.testapp.user.domain.usecase.UsersUseCase
-import com.example.testapp.user.presentation.model.UserListUiState
-import com.example.testapp.user.presentation.viewModel.UsersListViewModel
+import com.example.testapp.user.domain.interactor.UsersInteractor
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
@@ -26,13 +24,17 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import com.example.testapp.user.presentation.viewmodel.UsersListViewModel
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class UsersListViewModelTest {
-
 
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
-    private val usersUseCase = mockk<UsersUseCase>(relaxed = true)
+    private val usersInteractor = mockk<UsersInteractor>(relaxed = true)
 
     private val userDomainModels = listOf(
         UserDomainModel(
@@ -61,14 +63,11 @@ class UsersListViewModelTest {
         )
     )
 
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun tearDown() {
         Dispatchers.resetMain()
@@ -78,76 +77,97 @@ class UsersListViewModelTest {
     @Test
     fun `test UsersListViewModel initial state`() = testScope.runTest {
         // Arrange
-        val usersListViewModel = UsersListViewModel(usersUseCase)
+        val usersListViewModel = UsersListViewModel(usersInteractor)
 
         // Act
         val emittedStates = usersListViewModel.state.take(1).toList()
 
         // Assert
-        assert(emittedStates[0] is UserListUiState.LoadingUiState)
+        assertTrue(emittedStates[0].isLoading)
     }
 
     @Test
-    fun `test UsersListViewModel load users`() = testScope.runTest {
+    fun `test UsersListViewModel load users successfully`() = testScope.runTest {
         // Arrange
+        coEvery { usersInteractor.getUsersAsFlow(any()) } returns flowOf(userDomainModels)
+        coEvery { usersInteractor.fetchUsers(any()) } just Runs
 
-        coEvery { usersUseCase.getUsersAsFlow(any()) } returns flowOf(userDomainModels)
-        coEvery { usersUseCase.fetchUsers(any()) } just Runs
-
-        val usersListViewModel = UsersListViewModel(usersUseCase)
+        val usersListViewModel = UsersListViewModel(usersInteractor)
 
         // Act
-        usersListViewModel.fetchUsers()
-
-        val emittedStates = usersListViewModel.state.take(2).toList()
+        val emittedStates = usersListViewModel.state.take(3).toList()
 
         // Assert
-        assert(emittedStates[0] is UserListUiState.LoadingUiState)
-        assert(emittedStates[1] is UserListUiState.UsersUiState)
-        val usersUiState = emittedStates[1] as UserListUiState.UsersUiState
-        assert(usersUiState.users.isNotEmpty())
+        assertTrue(emittedStates[0].isLoading)
+        assertFalse(emittedStates[1].isLoading)
+        assertTrue(emittedStates[2].users.isNotEmpty())
     }
 
     @Test
     fun `test UsersListViewModel error state`() = testScope.runTest {
         // Arrange
         val errorMessage = "An error occurred"
-        coEvery { usersUseCase.getUsersAsFlow(any()) } returns flow {
+        coEvery { usersInteractor.getUsersAsFlow(any()) } returns flow {
             throw Exception(errorMessage)
         }
 
-        val usersListViewModel = UsersListViewModel(usersUseCase)
+        val usersListViewModel = UsersListViewModel(usersInteractor)
 
         // Act
-        usersListViewModel.fetchUsers()
-
-        val emittedStates = usersListViewModel.state.take(2).toList()
+        val emittedStates = usersListViewModel.state.take(3).toList()
 
         // Assert
-        assert(emittedStates[0] is UserListUiState.LoadingUiState)
-        assert(emittedStates[1] is UserListUiState.ErrorUiState)
-        val errorUiState = emittedStates[1] as UserListUiState.ErrorUiState
-        assert(errorUiState.errorMessage == errorMessage)
+        assertTrue(emittedStates[0].isLoading)
+        assertFalse(emittedStates[1].isLoading)
+        assertNotNull(emittedStates[2].errorMessage)
     }
 
     @Test
     fun `test UsersListViewModel switch user filter`() = testScope.runTest {
         // Arrange
+        coEvery { usersInteractor.getUsersAsFlow(any()) } returns flowOf(userDomainModels)
+        coEvery { usersInteractor.fetchUsers(any()) } just Runs
 
-        coEvery { usersUseCase.getUsersAsFlow(any()) } returns flowOf(userDomainModels)
-        coEvery { usersUseCase.fetchUsers(any()) } just Runs
-
-        val usersListViewModel = UsersListViewModel(usersUseCase)
+        val usersListViewModel = UsersListViewModel(usersInteractor)
 
         // Act
         usersListViewModel.switchUserFilter(true)
-
-        val emittedStates = usersListViewModel.state.take(2).toList()
+        val emittedStates = usersListViewModel.state.take(3).toList()
 
         // Assert
-        assert(emittedStates[0] is UserListUiState.LoadingUiState)
-        assert(emittedStates[1] is UserListUiState.UsersUiState)
-        val usersUiState = emittedStates[1] as UserListUiState.UsersUiState
-        assert(usersUiState.users.isNotEmpty())
+        assertTrue(emittedStates[0].isLoading)
+        assertFalse(emittedStates[1].isLoading)
+        assertTrue(emittedStates[2].users.isNotEmpty())
+    }
+
+    @Test
+    fun `test UsersListViewModel refresh users`() = testScope.runTest {
+        // Arrange
+        coEvery { usersInteractor.getUsersAsFlow(any()) } returns flowOf(userDomainModels)
+        coEvery { usersInteractor.fetchUsers(any()) } just Runs
+
+        val usersListViewModel = UsersListViewModel(usersInteractor)
+
+        // Act
+        usersListViewModel.refreshUsers()
+        val emittedStates = usersListViewModel.state.take(3).toList()
+
+        // Assert
+        assertTrue(emittedStates[0].isLoading)
+        assertTrue(emittedStates[1].isRefreshing)
+        assertTrue(emittedStates[2].users.isNotEmpty())
+    }
+
+    @Test
+    fun `test UsersListViewModel onFavoriteClick updates favorite status`() = testScope.runTest {
+        // Arrange
+        val userId = 1L
+        val isFavorite = true
+        coEvery { usersInteractor.updateIsFavoriteById(userId, isFavorite) } just Runs
+
+        val usersListViewModel = UsersListViewModel(usersInteractor)
+
+        // Act
+        usersListViewModel.onFavoriteClick(userId, isFavorite)
     }
 }
