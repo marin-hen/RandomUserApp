@@ -20,9 +20,8 @@ class UserListScreenTest {
     fun testUserListScreenLoadingState() {
         composeTestRule.setContent {
             UserListScreen(
-                state = UserListUiState.LoadingUiState,
+                state = UserListUiState(isLoading = true),
                 error = ErrorUiMessage(null),
-                isFavoriteUsersEnabled = false,
                 onItemDetailsClick = {},
                 onFavoriteUserClick = { _, _ -> },
                 onFavoriteFilterClick = {},
@@ -39,7 +38,6 @@ class UserListScreenTest {
             UserListScreen(
                 state = mockUserListState,
                 error = ErrorUiMessage(null),
-                isFavoriteUsersEnabled = false,
                 onItemDetailsClick = {},
                 onFavoriteUserClick = { _, _ -> },
                 onFavoriteFilterClick = {},
@@ -48,10 +46,8 @@ class UserListScreenTest {
             )
         }
 
-        // Verify that the list is displayed
         composeTestRule.onNodeWithTag("user_list").assertExists()
 
-        // Verify first item
         composeTestRule.onNodeWithText(mockUserListState.users[0].name)
             .assertExists()
     }
@@ -61,9 +57,8 @@ class UserListScreenTest {
         val errorMessage = "Something went terribly wrong!"
         composeTestRule.setContent {
             UserListScreen(
-                state = UserListUiState.ErrorUiState(errorMessage),
+                state = UserListUiState(errorMessage = errorMessage),
                 error = ErrorUiMessage(null),
-                isFavoriteUsersEnabled = false,
                 onItemDetailsClick = {},
                 onFavoriteUserClick = { _, _ -> },
                 onFavoriteFilterClick = {},
@@ -71,7 +66,7 @@ class UserListScreenTest {
                 onClearError = {}
             )
         }
-        // Verify that the error message is displayed
+
         composeTestRule.onNodeWithText(errorMessage).assertExists()
     }
 
@@ -81,7 +76,6 @@ class UserListScreenTest {
             UserListScreen(
                 state = mockUserListState,
                 error = ErrorUiMessage(null),
-                isFavoriteUsersEnabled = false,
                 onItemDetailsClick = {},
                 onFavoriteUserClick = { _, _ -> },
                 onFavoriteFilterClick = {},
@@ -90,6 +84,6 @@ class UserListScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("test_tag_favorite_toggle").assertExists()
+        composeTestRule.onNodeWithTag("favorite_toggle").assertExists()
     }
 }

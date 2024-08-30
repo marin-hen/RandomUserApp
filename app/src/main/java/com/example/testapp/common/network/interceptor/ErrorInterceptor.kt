@@ -1,4 +1,4 @@
-package com.example.testapp.di.intercepter
+package com.example.testapp.common.network.interceptor
 
 import com.example.testapp.user.domain.exception.NoInternetException
 import okhttp3.Interceptor

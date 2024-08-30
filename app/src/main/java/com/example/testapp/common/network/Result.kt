@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.testapp.common
+package com.example.testapp.common.network
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

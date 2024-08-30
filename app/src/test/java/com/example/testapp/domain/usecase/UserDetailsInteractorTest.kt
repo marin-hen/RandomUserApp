@@ -2,7 +2,7 @@ package com.example.testapp.domain.usecase
 
 import com.example.testapp.user.domain.UsersRepository
 import com.example.testapp.user.domain.model.UserDomainModel
-import com.example.testapp.user.domain.usecase.UserDetailsUseCase
+import com.example.testapp.user.domain.interactor.UserDetailsInteractor
 import io.mockk.MockKAnnotations
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,19 +17,19 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-class UserDetailsUseCaseTest {
+class UserDetailsInteractorTest {
 
     @MockK
     private lateinit var usersRepository: UsersRepository
 
-    private lateinit var classUnderTest: UserDetailsUseCase
+    private lateinit var classUnderTest: UserDetailsInteractor
 
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        classUnderTest = UserDetailsUseCase(testDispatcher, usersRepository)
+        classUnderTest = UserDetailsInteractor(testDispatcher, usersRepository)
     }
 
     @Test

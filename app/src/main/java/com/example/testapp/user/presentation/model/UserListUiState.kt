@@ -1,12 +1,12 @@
 package com.example.testapp.user.presentation.model
 
-import androidx.annotation.StringRes
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 data class UserListUiState(
-    val users: List<UserUiModel> = emptyList(),
+    val users: ImmutableList<UserUiModel> = persistentListOf(),
     val isRefreshing: Boolean = false,
     val isFavoriteUsersEnabled: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    @StringRes val remoteErrorMessage: Int? = null
+    val errorMessage: String? = null
 )

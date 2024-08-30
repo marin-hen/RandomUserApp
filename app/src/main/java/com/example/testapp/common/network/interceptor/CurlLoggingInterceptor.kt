@@ -1,4 +1,4 @@
-package com.example.testapp.di.intercepter
+package com.example.testapp.common.network.interceptor
 
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -23,9 +23,11 @@ class CurlLoggingInterceptor(private val logger: Logger = Logger.DEFAULT) : Inte
         var compressed = false
 
         var curlCmd = "curl"
-        if (curlOptions != null) {
-            curlCmd += " " + curlOptions!!
+
+        curlOptions?.let {
+            curlCmd += " $it"
         }
+
         curlCmd += " -X " + request.method
 
         val headers = request.headers

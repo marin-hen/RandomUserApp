@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -23,7 +24,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
@@ -69,29 +70,26 @@ internal fun UserDetailsScreen(
             )
         },
     ) { paddingValues ->
-        when (uiState) {
-            is UserDetailsUiState.UserUiState -> ScreenContent(
-                uiState = uiState,
-                modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
-            )
+        ScreenContent(
+            uiState = uiState,
+            modifier = Modifier
+                .padding(top = paddingValues.calculateTopPadding())
+                .navigationBarsPadding(),
+        )
 
-            is UserDetailsUiState.LoadingUiState -> {
-                CenteredCircleLoader(uiState.isLoading)
-            }
+        CenteredCircleLoader(uiState.isLoading)
 
-            is UserDetailsUiState.ErrorUiState -> {
-                ErrorContent(
-                    errorText = uiState.errorMessage,
-                    modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
-                )
-            }
-        }
+        ErrorContent(
+            errorText = uiState.errorMessage,
+            modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
+        )
+
     }
 }
 
 @Composable
 private fun ScreenContent(
-    uiState: UserDetailsUiState.UserUiState,
+    uiState: UserDetailsUiState,
     modifier: Modifier = Modifier,
 ) {
 
@@ -103,31 +101,29 @@ private fun ScreenContent(
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-        Surface {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+        ) {
 
-                UserImage(
-                    imageUrl = uiState.user.picture.medium,
-                    onImageClick = { isDialogOpened = true }
-                )
+            UserImage(
+                imageUrl = uiState.user?.picture?.medium,
+                onImageClick = { isDialogOpened = true }
+            )
 
-                if (isDialogOpened) {
-                    LargeImageDialog(onClickOutside = { isDialogOpened = false }) {
-                        AsyncImage(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            model = uiState.user.picture.large,
-                            contentDescription = null,
-                            error = painterResource(R.drawable.ic_image_placeholder)
-                        )
-                    }
+            if (isDialogOpened) {
+                LargeImageDialog(onClickOutside = { isDialogOpened = false }) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        model = uiState.user?.picture?.large,
+                        contentDescription = null,
+                        error = painterResource(R.drawable.ic_image_placeholder)
+                    )
                 }
-                InfoFields(uiState)
             }
+            InfoFields(uiState.user)
         }
 
         ZoomFab(
@@ -135,8 +131,8 @@ private fun ScreenContent(
             onFabClicked = { isDialogOpened = true }
         )
     }
-}
 
+}
 
 @Composable
 private fun UserImage(
@@ -149,7 +145,7 @@ private fun UserImage(
     ) {
         AsyncImage(
             modifier = Modifier
-                .clickable { onImageClick() }
+                .clickable(onClick = onImageClick)
                 .padding(all = 16.dp)
                 .size(250.dp)
                 .clip(CircleShape),
@@ -160,13 +156,12 @@ private fun UserImage(
     }
 }
 
-
 @Composable
-private fun InfoFields(uiState: UserDetailsUiState.UserUiState) {
+private fun InfoFields(user: UserUiModel?) {
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
-        uiState.user.let {
+        user?.let {
             NameAndLocation(it)
             UserProperty(stringResource(R.string.timezone), it.timezone)
             UserProperty(stringResource(R.string.email), it.email)
@@ -234,13 +229,14 @@ private fun UserProperty(label: String, value: String) {
 @Composable
 fun LargeImageDialog(onClickOutside: () -> Unit, content: @Composable () -> Unit) {
     Dialog(
-        onDismissRequest = { onClickOutside() },
+        onDismissRequest = onClickOutside,
         DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clickable { onClickOutside() }
+                .clickable(onClick = onClickOutside)
+                .testTag(stringResource(id = R.string.test_tag_large_image_dialog))
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
@@ -259,7 +255,8 @@ fun ZoomFab(
         modifier = modifier
             .padding(16.dp)
             .height(48.dp)
-            .widthIn(min = 48.dp),
+            .widthIn(min = 48.dp)
+            .testTag(stringResource(id = R.string.test_tag_zoom_in)),
         containerColor = MaterialTheme.colorScheme.onSurface
     ) {
         Icon(
@@ -286,6 +283,6 @@ private val mockUser = UserUiModel(
 @Composable
 fun PreviewUserDetailsScreen() {
     UserDetailsScreen(
-        uiState = UserDetailsUiState.UserUiState(mockUser)
+        uiState = UserDetailsUiState(user = mockUser)
     )
 }

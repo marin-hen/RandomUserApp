@@ -4,10 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.example.testapp.user.route.UserDetailsRoute
-import com.example.testapp.user.route.UserListRoute
-import com.example.testapp.user.route.userDetailsScreen
-import com.example.testapp.user.route.userListScreen
+import com.example.testapp.user.navigation.Screen
+import com.example.testapp.user.navigation.userDetailsScreen
+import com.example.testapp.user.navigation.userListScreen
 
 @Composable
 fun Graph(
@@ -17,14 +16,11 @@ fun Graph(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UserListRoute.route,
+        startDestination = Screen.UserList,
         builder = {
             userListScreen(
                 onItemDetailsClick = { id: Long ->
-                    val params = UserDetailsRoute.Params(
-                        userId = id,
-                    )
-                    navController.navigate(UserDetailsRoute.build(params))
+                    navController.navigate(Screen.UserDetails(userId = id))
                 }
             )
             userDetailsScreen()

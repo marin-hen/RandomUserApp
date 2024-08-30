@@ -21,7 +21,8 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             UsersDatabase::class.java,
-            "Tasks.db")
+            "Tasks.db"
+        )
             .fallbackToDestructiveMigration()
             .build()
     }

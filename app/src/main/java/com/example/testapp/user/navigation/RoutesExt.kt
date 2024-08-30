@@ -1,41 +1,43 @@
-package com.example.testapp.user.route
+package com.example.testapp.user.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.example.testapp.user.presentation.screens.UserDetailsScreen
 import com.example.testapp.user.presentation.screens.UserListScreen
-import com.example.testapp.user.presentation.viewModel.UsersListViewModel
-
-object UserListRoute : NavRoute<EmptyNavParams>() {
-
-    private const val PATH = "user/list"
-    override val route: String = PATH
-
-    override fun build(params: EmptyNavParams): String {
-        return Uri.Builder()
-            .path(PATH)
-            .build()
-            .toString()
-    }
-}
+import com.example.testapp.user.presentation.viewmodel.UserDetailsViewModel
+import com.example.testapp.user.presentation.viewmodel.UsersListViewModel
 
 fun NavGraphBuilder.userListScreen(
     onItemDetailsClick: (id: Long) -> Unit
 ) {
-    composable(UserListRoute.route) {
+    composable<Screen.UserList> {
         val viewModel = hiltViewModel<UsersListViewModel>()
         val state by viewModel.state.collectAsState()
+        val errorStateMessage by viewModel.errorStateMessage.collectAsState()
 
         UserListScreen(
             state = state,
+            error = errorStateMessage,
             onItemDetailsClick = onItemDetailsClick,
             onFavoriteUserClick = viewModel::onFavoriteClick,
             onFavoriteFilterClick = viewModel::switchUserFilter,
-            onRefresh = viewModel::fetchUsers,
+            onRefresh = viewModel::refreshUsers,
             onClearError = viewModel::onClearErrorState
+        )
+    }
+}
+
+fun NavGraphBuilder.userDetailsScreen(
+) {
+    composable<Screen.UserDetails> {
+        val viewModel = hiltViewModel<UserDetailsViewModel>()
+        val state by viewModel.state.collectAsState()
+
+        UserDetailsScreen(
+            uiState = state,
         )
     }
 }
