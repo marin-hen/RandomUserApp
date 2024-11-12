@@ -14,6 +14,8 @@ import com.example.testapp.user.presentation.viewmodel.UserDetailsViewModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -67,6 +69,7 @@ class UserDetailsViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
+        mockkStatic("androidx.navigation.SavedStateHandleKt")
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -75,15 +78,15 @@ class UserDetailsViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
         testScope.cancel()
+        unmockkStatic("androidx.navigation.SavedStateHandleKt")
     }
 
-    // todo doesn't work because of https://issuetracker.google.com/issues/349807172?pli=1
+    // Navigation arguments issue https://issuetracker.google.com/issues/349807172?pli=1
     // https://issuetracker.google.com/issues/340966212?hl=it
     // https://issuetracker.google.com/issues/349807172
     // https://slack-chats.kotlinlang.org/t/18821653/previously-for-unit-testing-viewmodels-that-depend-on-a-save
 
 
-    @Ignore()
     @Test
     fun `test UserDetailsViewModel with valid userId`() = testScope.runTest {
         // Arrange
@@ -100,7 +103,6 @@ class UserDetailsViewModelTest {
         assert(emittedStates[1] == userUiState)
     }
 
-    @Ignore
     @Test
     fun `test UserDetailsViewModel with missing userId`() = testScope.runTest {
         // Arrange
