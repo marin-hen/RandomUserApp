@@ -20,5 +20,10 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "TestApp"
-include(":app")
- 
+include(
+    ":app",
+    ":common",
+    ":feature:user",
+    ":data",
+    ":domain"
+)

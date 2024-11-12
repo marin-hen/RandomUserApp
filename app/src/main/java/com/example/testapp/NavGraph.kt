@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.example.testapp.user.navigation.Screen
-import com.example.testapp.user.navigation.userDetailsScreen
-import com.example.testapp.user.navigation.userListScreen
+import com.example.user.navigation.Screen
+import com.example.user.navigation.userDetailsScreen
+import com.example.user.navigation.userListScreen
 
 @Composable
 fun Graph(
