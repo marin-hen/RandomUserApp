@@ -112,7 +112,7 @@ internal fun UserListScreen(
                 actions = {
                     IconButton(
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 12.dp)
                             .testTag(stringResource(id = R.string.test_tag_favorite_toggle)),
                         onClick = {
                             isHeartFilledState = !isHeartFilledState
@@ -160,8 +160,7 @@ private fun ScreenContent(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Log.d("TAG", "ScreenContent:CenteredCircleLoader ${uiState.isLoading} ")
-    CenteredCircleLoader(visible = uiState.isLoading)
+    //CenteredCircleLoader(visible = uiState.isLoading)
     UserList(
         uiState,
         onItemDetailsClick,
